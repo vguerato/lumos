@@ -1,0 +1,305 @@
+openapi: 3.0.3
+info:
+  title: Lumos API
+  version: "1.1.0"
+  description: API de contas e transações com autenticação via Bearer (Sanctum).
+servers:
+  - url: http://localhost:8080/api
+    description: Local
+
+tags:
+  - name: Auth
+  - name: Accounts
+  - name: Transactions
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+    User:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: Alice }
+        email: { type: string, format: email, example: alice@example.com }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+    AuthResponse:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+          example: 1|f4d0a5....
+    Account:
+      type: object
+      properties:
+        id: { type: string, example: 01J2ZQ8J3P8X2N7D8S7H3C2G1A }
+        user_id: { type: integer, example: 10 }
+        name: { type: string, example: Main }
+        balance: { type: number, format: float, example: 100.0 }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+    AccountDetailed:
+      allOf:
+        - $ref: '#/components/schemas/Account'
+        - type: object
+          properties:
+            transactions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Transaction'
+    Transaction:
+      type: object
+      properties:
+        id: { type: string, example: 01J2ZQ9B1K6Y3M5R8C2D4F7G9H }
+        account_id: { type: string, example: 01J2ZQ8J3P8X2N7D8S7H3C2G1A }
+        type:
+          type: string
+          enum: [deposit, withdrawal, transfer]
+        amount:
+          type: string
+          example: "25.00"
+        description: { type: string, nullable: true, example: Transfer to savings }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, example: Alice }
+        email: { type: string, format: email, example: alice@example.com }
+        password: { type: string, format: password, example: secret123 }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, example: alice@example.com }
+        password: { type: string, format: password, example: secret123 }
+    AccountCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, example: Main }
+        balance: { type: number, format: float, example: 100.0, nullable: true }
+    TransactRequest:
+      type: object
+      required: [account_id, amount, type]
+      properties:
+        account_id: { type: string, example: 01J2ZQ8J3P8X2N7D8S7H3C2G1A }
+        amount: { type: number, format: float, example: 50.0 }
+        type:
+          type: string
+          enum: [deposit, withdrawal]
+        description: { type: string, nullable: true, example: Initial deposit }
+    TransferRequest:
+      type: object
+      required: [account_from, account_to, amount]
+      properties:
+        account_from: { type: string, example: 01J2ZQ8J3P8X2N7D8S7H3C2G1A }
+        account_to: { type: string, example: 01J2ZQ8J3P8X2N7D8S7H3C2G1B }
+        amount: { type: number, format: float, example: 25.0 }
+        description: { type: string, nullable: true, example: Move funds }
+
+security: []
+
+paths:
+  /register:
+    post:
+      tags: [Auth]
+      summary: Registro de usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Usuário registrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '422':
+          description: Erro de validação
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /login:
+    post:
+      tags: [Auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Autenticado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Erro de validação
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /logout:
+    post:
+      tags: [Auth]
+      summary: Logout (revoga token atual)
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Logged out }
+        '401': { description: Não autenticado }
+
+  /accounts:
+    get:
+      tags: [Accounts]
+      summary: Lista contas do usuário
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de contas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Account' }
+        '401': { description: Não autenticado }
+    post:
+      tags: [Accounts]
+      summary: Cria conta
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AccountCreateRequest' }
+      responses:
+        '201':
+          description: Conta criada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        '422':
+          description: Erro de validação
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { description: Não autenticado }
+
+  /accounts/{accountId}:
+    get:
+      tags: [Accounts]
+      summary: Detalhes da conta
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: complete
+          required: false
+          schema: { type: boolean }
+          description: Se true, inclui as transações da conta
+      responses:
+        '200':
+          description: Conta
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Account'
+                  - $ref: '#/components/schemas/AccountDetailed'
+        '403': { description: Proibido }
+        '404': { description: Não encontrada }
+        '401': { description: Não autenticado }
+    delete:
+      tags: [Accounts]
+      summary: Remove conta
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Removida
+          content:
+            application/json:
+              schema: { type: boolean, example: true }
+        '403': { description: Proibido }
+        '404': { description: Não encontrada }
+        '401': { description: Não autenticado }
+
+  /transact:
+    post:
+      tags: [Transactions]
+      summary: Depósito/Saque
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransactRequest' }
+      responses:
+        '201':
+          description: Transação criada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transaction' }
+        '400': { description: Saldo insuficiente ou erro de negócio }
+        '403': { description: Proibido }
+        '422': { description: Erro de validação }
+        '401': { description: Não autenticado }
+
+  /transfer:
+    post:
+      tags: [Transactions]
+      summary: Transferência entre contas
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransferRequest' }
+      responses:
+        '201':
+          description: Transferência efetuada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transaction' }
+        '400': { description: Saldo insuficiente ou tipo inválido }
+        '403': { description: Proibido }
+        '404': { description: Conta não encontrada }
+        '422': { description: Erro de validação }
+        '401': { description: Não autenticado }
