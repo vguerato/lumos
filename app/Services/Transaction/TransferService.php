@@ -54,14 +54,14 @@ readonly class TransferService
             $accountTo->save();
 
             $transaction = $this->transactionRepository->createTransaction([
-                'account_id' => $accountAddressTo,
+                'account_id' => $accountAddressFrom,
                 'type' => TransactionType::WITHDRAWAL,
                 'amount' => $amount,
                 'description' => $description,
             ]);
 
             $this->transactionRepository->createTransaction([
-                'account_id' => $accountAddressFrom,
+                'account_id' => $accountAddressTo,
                 'type' => TransactionType::DEPOSIT,
                 'amount' => $amount,
                 'description' => $description,
