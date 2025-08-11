@@ -14,8 +14,6 @@ readonly class GetAccountsService
 
     public function execute(): Collection
     {
-        Cache::put(random_bytes(10), json_encode(request()->user()));
-
         $userId = request()->user()->id;
         return $this->accountRepository->getAccountsByUserId($userId);
     }
