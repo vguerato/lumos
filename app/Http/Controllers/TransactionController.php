@@ -62,7 +62,7 @@ class TransactionController extends Controller
             'description' => ['nullable','string','max:255'],
         ]);
 
-        $this->authorize('create', [Transaction::class, $data['account_from']]);
+        $this->authorize('transfer', [Transaction::class, $data['account_from']]);
 
         $transaction = $transferService->execute($data);
 
