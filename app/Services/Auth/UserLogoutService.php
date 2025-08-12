@@ -9,7 +9,9 @@ readonly class UserLogoutService
 {
     public function logout(): void
     {
-        request()->user()?->currentAccessToken()?->delete();
-        Auth::logout();
+        if ($user = request()->user()) {
+            $user->currentAccessToken()?->delete();
+            Auth::logout();
+        }
     }
 }
