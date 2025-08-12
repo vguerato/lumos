@@ -4,7 +4,6 @@ namespace App\Solutions\User;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class UserCache
 {
@@ -12,7 +11,7 @@ class UserCache
 
     public static function key(): string
     {
-        return sprintf('user:%s', request()->user()?->id);
+        return sprintf('user:%s', request()->user()->id);
     }
 
     public static function warm(User $user): array
@@ -25,8 +24,6 @@ class UserCache
         ];
 
         Cache::put(self::key(), $payload, self::TTL);
-
-        Log::debug('Warming user cache for user: ' . $user->id, $payload);
 
         return $payload;
     }
