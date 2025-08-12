@@ -4,7 +4,6 @@ namespace App\Listeners\Auth;
 
 use App\Models\User;
 use App\Solutions\User\UserCache;
-use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\Events\Registered;
