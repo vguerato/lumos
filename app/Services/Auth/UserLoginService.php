@@ -12,9 +12,7 @@ use Illuminate\Validation\UnauthorizedException;
 readonly class UserLoginService
 {
     public function __construct(private UserRepository $userRepository)
-    {
-        //
-    }
+    {}
 
     public function login(array $data): array
     {
