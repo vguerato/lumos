@@ -58,6 +58,7 @@ readonly class TransferService
                 'type' => TransactionType::WITHDRAWAL,
                 'amount' => $amount,
                 'description' => $description,
+                'status' => 'completed'
             ]);
 
             $this->transactionRepository->createTransaction([
@@ -65,6 +66,7 @@ readonly class TransferService
                 'type' => TransactionType::DEPOSIT,
                 'amount' => $amount,
                 'description' => $description,
+                'status' => 'completed'
             ]);
 
             return $transaction;
