@@ -1,5 +1,11 @@
 #!/usr/bin/env sh
-set -e
+#!/bin/sh
+set -eu
+
+# Make files fully writable/readable/executable by everyone to prevent read-only issues
+umask 000
+chmod -R 777 /var/www/html || true
+chown -R www-data:www-data /var/www/html || true
 
 cd /var/www/html
 
