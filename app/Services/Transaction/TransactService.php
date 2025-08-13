@@ -52,7 +52,7 @@ readonly class TransactService
             return $this->transactionRepository->createTransaction($data);
         } catch (Exception $e) {
             DB::rollBack();
-            throw new Exception('Cannot complete transaction.', 500, $e);
+            throw $e;
         } finally {
             DB::commit();
         }
