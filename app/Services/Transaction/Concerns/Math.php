@@ -14,7 +14,7 @@ trait Math
      */
     private function shouldNegative(float $num1, float $num2): bool
     {
-        return bccomp($num1, $num2, 2) <= 0;
+        return bccomp($num1, $num2, 2) < 0;
     }
 
     /**
